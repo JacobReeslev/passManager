@@ -1,0 +1,6 @@
+@passManager_HostAddress = http://localhost:5068
+
+GET {{passManager_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
