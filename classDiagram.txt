@@ -1,0 +1,83 @@
++------------------------+          +----------------------+           +------------------------+
+|         User           |          |    PasswordEntry    |           |      Testimonial       |
++------------------------+          +----------------------+           +------------------------+
+| Id: int (PK)           |          | Id: int (PK)        |           | Id: int (PK)           |
+| Username: string       |          | Website: string     |           | Content: string        |
+| Email: string          |<---------| Username: string    |           | Rating: int            |
+| PasswordHash: string   |    1   * | EncryptedPassword:  |           | UserId: int (FK)      <|------+
+| Salt: string           |          | string              |           | User: User             |      |
+| Passwords: List<       |          | IV: string          |           +------------------------+      |
+|   PasswordEntry>       |          | UserId: int (FK)    |                                          |
++------------------------+          | User: User         <|------+                                    |
+           ^                        +----------------------+      |                                    |
+           |                                                      |                                    |
+           +------------------------------------------------------+------------------------------------+
+                                                                  1
+
++------------------------+
+|     AppDbContext      |
++------------------------+
+| Users: DbSet<User>    |
+| Passwords: DbSet<     |
+|   PasswordEntry>      |
+| Testimonials: DbSet<  |
+|   Testimonial>        |
++------------------------+
+| AppDbContext(         |
+|   DbContextOptions<   |
+|   AppDbContext>       |
+|   options)            |
++------------------------+
+
++------------------------+          +------------------------+          +------------------------+
+|    AuthController      |          | PasswordsController    |          | TestimonialsController |
++------------------------+          +------------------------+          +------------------------+
+| _context: AppDbContext |          | _context: AppDbContext |          | _context: AppDbContext |
+| _configuration:        |          +------------------------+          +------------------------+
+|   IConfiguration       |          | GetPasswords()         |          | GetTestimonials()      |
++------------------------+          | GetPassword(int)       |          | CreateTestimonial(     |
+| Register(UserDto)      |          | CreatePassword(        |          |   TestimonialCreateDto)|
+| Login(UserLoginDto)    |          |   PasswordEntryDto)    |          | GetUserId()            |
+| CreatePasswordHash(    |          | UpdatePassword(int,    |          +------------------------+
+|   string, out byte[],  |          |   PasswordEntryDto)    |
+|   out byte[])          |          | DeletePassword(int)    |
+| VerifyPasswordHash(    |          | PasswordExists(int)    |
+|   string, byte[],      |          | GetUserId()            |
+|   byte[])              |          +------------------------+
+| CreateToken(User)      |
++------------------------+
+
+
+
+DTOs (Data Transfer Objects)
+
++------------------+    +------------------+    +------------------+
+|     UserDto      |    |   UserLoginDto   |    | PasswordEntryDto |
++------------------+    +------------------+    +------------------+
+| Username: string |    | Email: string    |    | Id: int          |
+| Email: string    |    | Password: string |    | Website: string  |
+| Password: string |    +------------------+    | Username: string |
++------------------+                            | EncryptedPassword|
+                                                |   : string       |
++------------------+    +------------------+    | IV: string       |
+| TestimonialDto   |    |TestimonialCreate |    +------------------+
++------------------+    |      Dto         |
+| Id: int          |    +------------------+
+| Content: string  |    | Content: string  |
+| Rating: int      |    | Rating: int      |
+| Username: string |    +------------------+
++------------------+
+
+Relationships
+User to PasswordEntry: One-to-Many
+
+A User can have multiple Password entries (represented by the Passwords collection in User)
+Each Password entry belongs to exactly one User (represented by UserId FK in PasswordEntry)
+User to Testimonial: One-to-Many
+
+A User can create multiple Testimonials
+Each Testimonial is created by exactly one User (represented by UserId FK in Testimonial)
+Controllers use AppDbContext to access the database
+
+Each controller has a dependency on AppDbContext
+The diagram shows the core domain models and their relationships, along with the controllers that handle API requests and the DTOs used for data transfer. The AppDbContext class serves as the database context for Entity Framework Core.
